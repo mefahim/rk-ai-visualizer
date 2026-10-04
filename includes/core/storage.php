@@ -11,7 +11,7 @@ final class Storage {
         $up=wp_upload_dir(); if (!empty($up['error']) || empty($up['basedir']) || empty($up['baseurl'])) { return ''; }
         $dir=trailingslashit($up['basedir']).'rk-ai-visualizer'; if (!is_dir($dir) && !wp_mkdir_p($dir)) { return ''; }
         $name=bin2hex(random_bytes(12)).'.'.$ext[$info['mime']]; $path=trailingslashit($dir).$name;
-        if (false===file_put_contents($path,$bytes,LOCK_EX)) { return ''; }
+        if (false===@file_put_contents($path,$bytes,LOCK_EX)) { return ''; }
         return trailingslashit($up['baseurl']).'rk-ai-visualizer/'.$name;
     }
     public static function cleanup() {
