@@ -20,7 +20,6 @@ final class Routes {
     private static function slug( $request ) { $slug=$request->get_param('visualizer'); return $slug?sanitize_key($slug):'flooring'; }
     public static function quota( $request ) { return self::engine()->quota(self::slug($request)); }
     public static function generate( $request ) { return self::engine()->generate(self::slug($request),$request); }
-    public static function status( $request ) { return self::engine()->status($request); }
+    public static function status( $request ) { return self::engine()->status($request,self::slug($request)); }
     public static function lead( $request ) { return self::engine()->lead(self::slug($request),$request); }
-    public static function legacy( $request ) { $path=$request->get_route(); if (false!==strpos($path,'/quota')) return self::quota($request); if (false!==strpos($path,'/generate')) return self::generate($request); if (false!==strpos($path,'/status')) return self::status($request); return self::lead($request); }
 }

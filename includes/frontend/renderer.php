@@ -20,16 +20,17 @@ final class Renderer {
         $html.='</aside><dialog data-viz-lead=""><button type="button" data-viz-close="" aria-label="Close">×</button><form data-viz-leadform=""><h2>Unlock one more visualization</h2><p>Share your contact details and we will unlock another free visualization.</p><label>Name<input name="name" maxlength="120" required></label><label>Email<input name="email" type="email" required></label><label>Phone (optional)<input name="phone" type="tel" maxlength="30"></label><p role="alert" data-viz-lead-error="" hidden></p><button type="submit">Unlock my visualization</button></form></dialog></section>';
         return $html;
     }
+    private static function conditionValue( $value ) { return is_bool($value)?($value?'1':'0'):(string)$value; }
     private static function field( array $field ) {
         $id=$field['id']; $name=esc_attr($id); $label=esc_html($field['label']); $required=!empty($field['required'])?' required':''; $attrs=' name="'.$name.'"'.$required;
-        $condition=''; if (!empty($field['visible_when'])) { $condition=' data-visible-field="'.esc_attr($field['visible_when']['field']).'" data-visible-equals="'.esc_attr($field['visible_when']['equals']).'" hidden'; }
-        if (!empty($field['required_when'])) { $condition.=' data-required-field="'.esc_attr($field['required_when']['field']).'" data-required-equals="'.esc_attr($field['required_when']['equals']).'"'; }
+        $condition=''; if (!empty($field['visible_when'])) { $condition=' data-visible-field="'.esc_attr($field['visible_when']['field']).'" data-visible-equals="'.esc_attr(self::conditionValue($field['visible_when']['equals'])).'" hidden'; }
+        if (!empty($field['required_when'])) { $condition.=' data-required-field="'.esc_attr($field['required_when']['field']).'" data-required-equals="'.esc_attr(self::conditionValue($field['required_when']['equals'])).'"'; }
         $h='<div class="rkaiviz-field"'.$condition.'><label for="rkaiviz-'.$name.'">'.$label.'</label>';
         if (in_array($field['type'],array('select','radio','cards','swatches'),true)) {
             if ('select'===$field['type']) { $h.='<select id="rkaiviz-'.$name.'"'.$attrs.'>'; if (empty($field['required'])) $h.='<option value="">Select…</option>'; foreach((array)$field['options'] as $v=>$text) $h.='<option value="'.esc_attr($v).'">'.esc_html($text).'</option>'; $h.='</select>'; }
             else { foreach((array)$field['options'] as $v=>$text) $h.='<label class="rkaiviz-choice"><input type="radio"'.$attrs.' value="'.esc_attr($v).'"><span>'.esc_html($text).'</span></label>'; }
         } elseif ('textarea'===$field['type']) { $h.='<textarea id="rkaiviz-'.$name.'"'.$attrs.' maxlength="'.(int)(isset($field['max_length'])?$field['max_length']:500).'" placeholder="'.esc_attr(isset($field['placeholder'])?$field['placeholder']:'').'"></textarea>'; }
-        else { $type=in_array($field['type'],array('number','email','image','toggle','slider','text'),true)?$field['type']:'text'; $h.='<input id="rkaiviz-'.$name.'" type="'.esc_attr('toggle'===$type?'checkbox':('slider'===$type?'range':$type)).'"'.$attrs.(isset($field['min'])?' min="'.(int)$field['min'].'"':'').(isset($field['max'])?' max="'.(int)$field['max'].'"':'').(isset($field['default'])?' value="'.esc_attr($field['default']).'"':'').'>'; }
+        else { $type=in_array($field['type'],array('number','toggle','slider','text'),true)?$field['type']:'text'; $h.='<input id="rkaiviz-'.$name.'" type="'.esc_attr('toggle'===$type?'checkbox':('slider'===$type?'range':$type)).'"'.$attrs.(isset($field['min'])?' min="'.(int)$field['min'].'"':'').(isset($field['max'])?' max="'.(int)$field['max'].'"':'').(isset($field['default'])?' value="'.esc_attr($field['default']).'"':'').'>'; }
         if (!empty($field['help'])) $h.='<small>'.esc_html($field['help']).'</small>'; return $h.'</div>';
     }
 }

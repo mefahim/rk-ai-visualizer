@@ -12,22 +12,22 @@
 ## Generation sequence
 
 1. Resolve the visualizer definition and check provider readiness.
-2. Validate upload bytes, MIME, size, dimensions, and submitted options against definition fields.
-3. Resolve browser identity; check current quota and per-IP hourly allowance.
+2. Resolve browser identity; check current quota and per-IP hourly allowance before parsing image bytes.
+3. Validate upload bytes, MIME, size, dimensions, and submitted options against definition fields.
 4. Reserve one generation before making the provider call.
 5. Build the prompt from configured base rules, map-driven transformation templates, custom field text, and preservation rules.
 6. Send normalized input to the selected provider.
-7. On immediate success return a validated HTTPS result URL. On async pending, store a random job ID with provider job data, visitor ownership hash, quota phase/snapshot, definition slug, and start time.
-8. On polling, verify owner before contacting the provider. Pending results remain available; completion deletes the job; provider error/timeout refunds the reservation.
+7. On immediate success return a validated HTTPS result URL. On async pending, persist a random job ID with provider job data, visitor ownership hash, quota phase/snapshot, definition slug, and start time; failed quota/job-state writes fail closed and refund where possible.
+8. On polling, verify owner and definition slug before contacting the provider. Pending results remain available; completion deletes the job; provider error/timeout refunds the reservation.
 
 ## Definitions and prompt system
 
-The renderer and validator iterate fields generically. Select-like fields validate their keys/options; text fields may have configured limits; number fields are clamped; conditional fields reference another field and a value. Prompt maps and templates are data. Add a new visualizer by registering a validated `Definition`; do not add `if ($slug === ...)` checks in the engine, renderer, quota or lead classes.
+The renderer and validator iterate fields generically. Registration rejects unsupported field types, duplicate/unsafe IDs, malformed options, invalid numeric ranges, invalid regexes, broken/forward conditions, upload rule errors and out-of-range quota defaults. Select-like fields validate their keys/options; text fields may have configured limits; number/slider fields are clamped; conditional fields reference an earlier field and a value. Image uploads are a core input; a separate image-valued option field is not implemented yet. Prompt maps and templates are data. Add a new visualizer by registering a validated `Definition`; do not add `if ($slug === ...)` checks in the engine, renderer, quota or lead classes.
 
 ## Storage
 
-Quota and pending jobs use WordPress transients. Visitor state is keyed from a SHA-256 hash of a random HttpOnly cookie ID. IP rate records store hashed IP keys. Leads are deduplicated by normalized email in a capped WordPress option and tagged by visualizer/generation. Generated image bytes are checked with image parsers and stored under an engine-owned uploads subdirectory.
+Quota and pending jobs use WordPress transients. Visitor state is keyed from a SHA-256 hash of a random HttpOnly cookie ID. IP rate records store hashed IP keys. Leads are deduplicated by normalized email in a capped WordPress option, validated for phone format, and tagged by visualizer/generation; raw IP addresses are not persisted with lead records. Generated image bytes are checked with image parsers and stored under an engine-owned uploads subdirectory.
 
 ## Deliberate Phase 1 limits
 
-No visual definition builder, kitchen/bathroom definitions, cloud queue, licensing, billing, advanced analytics, or multi-tenant abstraction. Transient read/modify/write operations are not a distributed atomic lock; high-volume sites should move quotas/jobs to a transactional store in a later phase. Custom provider request/response contracts are intentionally modest and should be expanded only against concrete backend requirements.
+No visual definition builder, kitchen/bathroom definitions, image-valued option fields, licensing, billing, advanced analytics, or multi-tenant abstraction. Provider HTTP uses WordPress safe-URL validation, disables redirects, and caps response bodies; custom polling also pins host and effective port, while Hugging Face jobs are restricted to the fixed router path. Transient read/modify/write operations are not a distributed atomic lock and terminal polling is not a distributed idempotent transaction; high-volume sites should move quotas/jobs to a transactional store in a later phase. No live WordPress activation/REST or real AI-provider call has been tested in this phase.

@@ -53,7 +53,7 @@ The runtime layers are `Definitions → Core Engine → Providers`, with REST an
 
 ## Tests and verification
 
-The test runner covers definition registration/options, image MIME/size/dimensions, field validation, prompt output, quota/refund, lead normalization/deduplication, mock provider, generic frontend markup, engine generation/quota, async polling/ownership, provider failure refunds, custom status URL restrictions, and REST route registration. Tests use fakes and intercepted HTTP responses only. **PHP 8.3 lint passed for every PHP file; the independent test runner passed 14 tests with 0 failures.** A live WordPress integration check remains outstanding.
+The test runner covers definition registration/schema/options, image MIME/size/dimensions, field validation, prompt output, quota/refund/persistence failures, lead normalization/deduplication/storage failures, mock provider, generic frontend markup, engine generation/quota, async polling/ownership, custom status URL restrictions, SSRF cases, response caps, and REST route registration. Tests use local fakes and intercepted HTTP responses only. **PHP 8.3 lint passed for every PHP file; the independent suite passes 27 tests with 0 failures under `E_ALL`.** PHP 7.4 compatibility is statically audited; an actual PHP 7.4 runtime is not installed. No live WordPress integration or real-provider test was performed.
 
 ## Known limitations
 

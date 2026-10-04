@@ -24,4 +24,5 @@ final class Storage {
         $parts=wp_parse_url($url);
         return is_array($parts)&&isset($parts['scheme'],$parts['host'])&&'https'===strtolower($parts['scheme'])&&''!==$parts['host']&&!isset($parts['user'])&&!isset($parts['pass']);
     }
+    public static function isSafeRemoteUrl( $url ) { return self::isHttpsUrl($url)&&function_exists('wp_http_validate_url')&&false!==wp_http_validate_url($url); }
 }

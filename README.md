@@ -31,14 +31,14 @@ The legacy conceptual paths `/wp-json/rk/v1/visualizer/{quota,generate,status,le
 
 ## Extension points
 
-Register a `RK\AIVisualizer\Definitions\Definition` with `Registry::instance()->register(...)` during plugin bootstrap. A definition owns slug/name, upload constraints, generic field descriptions/options, prompt maps/rules, CTA/copy, and quota defaults. The same validator, prompt composer, engine, provider interface, REST routes, and renderer are used for every definition. Supported renderer field families include text, textarea, number, select, radio/cards/swatches, toggle, slider, and image; add specialized markup through the generic type renderer, not a definition-specific field-ID conditional.
+Register a `RK\AIVisualizer\Definitions\Definition` with `Registry::instance()->register(...)` during plugin bootstrap. A definition owns slug/name, upload constraints, generic field descriptions/options, prompt maps/rules, CTA/copy, and quota defaults. The same validator, prompt composer, engine, provider interface, REST routes, and renderer are used for every definition. Phase 1 supports text, textarea, number, select, radio/cards/swatches, toggle, and slider fields. The source image is an engine-level upload, not a definition option field; a separate image-valued option field is intentionally deferred. Unsupported field types and malformed definitions fail at registration rather than falling through to generic text rendering.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for boundaries and flow.
 
 ## Security and data
 
 - Uploads are verified from file bytes/MIME and dimensions; client-side checks are not trusted.
-- Provider URLs use HTTPS and WordPress safe-URL checks; redirects are disabled. Custom async status URLs must match the configured host.
+- Provider requests use HTTPS plus WordPress safe-URL validation, disable redirects, and cap response bodies at 20 MiB. Custom async status URLs must match the configured HTTPS host and effective port; Hugging Face polling URLs are revalidated against the fixed router host/path.
 - API credentials are never emitted in frontend markup or provider URLs. Prefer constants/environment variables for production secrets.
 - Lead data is stored in the `rk_ai_visualizer_leads` WordPress option with email deduplication and a 500-record cap. Restrict database access and follow your privacy/retention obligations.
 - Generated images are validated before writing to a random filename in `uploads/rk-ai-visualizer/`; files older than seven days are cleaned during generation.
@@ -52,4 +52,4 @@ The PHPUnit-free test runner uses WordPress fakes and intercepted HTTP responses
 php tests/run.php
 ```
 
-A live WordPress install is still required for full activation/admin/REST end-to-end verification.
+A live WordPress install is still required for activation/admin/REST end-to-end verification. The PHP 7.4 compatibility review is static; the code-level suite currently runs under PHP 8.3.
