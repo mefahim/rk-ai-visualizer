@@ -5,7 +5,7 @@
 Added a dedicated RK AI Visualizer administration workspace inside WordPress, replacing the plugin's former placement under **Settings → RK AI Visualizer** as the primary user-facing entry point. The workspace has Dashboard, Visualizers, Leads, and Settings screens. Existing WordPress Settings API registration remains in place for persistence and sanitization.
 
 Implementation branch: `feat/admin-dashboard-ui`  
-Pull request: to be opened against `main`; do not merge.
+Pull request: [Phase 5 — Admin Dashboard UI](https://github.com/mefahim/rk-ai-visualizer/pull/5), from `feat/admin-dashboard-ui` to `main` (**open; not merged**).
 
 ## RK-React-Builder reference findings
 
