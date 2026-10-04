@@ -41,15 +41,21 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for boundaries and flow.
 - Provider requests use HTTPS plus WordPress safe-URL validation, disable redirects, and cap response bodies at 20 MiB. Custom async status URLs must match the configured HTTPS host and effective port; Hugging Face polling URLs are revalidated against the fixed router host/path.
 - API credentials are never emitted in frontend markup or provider URLs. Prefer constants/environment variables for production secrets.
 - Lead data is stored in the `rk_ai_visualizer_leads` WordPress option with email deduplication and a 500-record cap. Restrict database access and follow your privacy/retention obligations.
+- The plugin uses a random, HttpOnly `rk_ai_viz` first-party cookie (365-day expiry) to associate anonymous quota state. Hourly IP rate-limit keys are HMACed with the WordPress authentication salt and expire after one hour; forwarded client-IP headers are deliberately not trusted.
 - Generated images are validated before writing to a random filename in `uploads/rk-ai-visualizer/`; files older than seven days are cleaned during generation.
 - REST is public because it serves anonymous visitors; upload checks, visitor quota, per-IP limits, strict input validation, non-cacheable responses, and job ownership constrain use. Site operators should layer their WAF/rate limits as appropriate.
 
 ## Tests
 
-The PHPUnit-free test runner uses WordPress fakes and intercepted HTTP responses; it does not call real AI providers:
+The PHPUnit-free test runner uses WordPress fakes and intercepted HTTP responses; it does not call real AI providers. Frontend request-state regressions run under Node:
 
 ```sh
 php tests/run.php
+node tests/frontend.test.js
 ```
 
-Disposable WordPress activation, shortcode rendering, public REST, upload, quota, lead, Mock generation, and browser checks are recorded in [WORDPRESS_INTEGRATION_VALIDATION_REPORT.md](WORDPRESS_INTEGRATION_VALIDATION_REPORT.md). The integration pass used WordPress 7.1.2 and PHP 8.3.6; it is not production or cross-version certification. Real Gemini/Hugging Face calls remain intentionally deferred. The PHP 7.4 compatibility review is static; the standalone code-level suite runs under PHP 8.3.
+Disposable WordPress activation, shortcode rendering, public REST, upload, quota, lead, Mock generation, and browser checks were completed in Phase 3 (the detailed report remains in the source repository and is not included in the install ZIP). That integration pass used WordPress 7.1.2 and PHP 8.3.6; it is not production or cross-version certification. Real Gemini/Hugging Face calls remain intentionally deferred. The PHP 7.4 compatibility review is static; the standalone code-level suite runs under PHP 8.3.
+
+## Distribution
+
+The installable release ZIP contains a single top-level `rk-ai-visualizer/` directory with the plugin entrypoint, runtime `includes/`, frontend `assets/`, `README.md`, `ARCHITECTURE.md`, and the complete official GPL version 2 text in `LICENSE`. The plugin header declares **GPL-2.0-or-later**. Tests, CI configuration, Git metadata, and implementation reports are excluded from the ZIP; they remain in the source repository.
