@@ -3,10 +3,12 @@ namespace RK\AIVisualizer;
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 use RK\AIVisualizer\Definitions\Registry;
 use RK\AIVisualizer\Definitions\Flooring;
+use RK\AIVisualizer\Definitions\Kitchen;
 require_once __DIR__ . '/core/errors.php';
 require_once __DIR__ . '/definitions/definition.php';
 require_once __DIR__ . '/definitions/registry.php';
 require_once __DIR__ . '/definitions/flooring.php';
+require_once __DIR__ . '/definitions/kitchen.php';
 require_once __DIR__ . '/core/validation.php';
 require_once __DIR__ . '/core/prompt.php';
 require_once __DIR__ . '/core/quota.php';
@@ -28,6 +30,7 @@ final class Bootstrap {
     public static function init() {
         $registry = Registry::instance();
         $registry->register( Flooring::definition() );
+        $registry->register( Kitchen::definition() );
         add_action( 'rest_api_init', array( Routes::class, 'register' ) );
         add_shortcode( 'rk_ai_visualizer', array( Renderer::class, 'shortcode' ) );
         add_action( 'wp_enqueue_scripts', array( Assets::class, 'register' ) );
