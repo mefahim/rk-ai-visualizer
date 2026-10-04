@@ -15,9 +15,14 @@ final class Storage {
         return trailingslashit($up['baseurl']).'rk-ai-visualizer/'.$name;
     }
     public static function cleanup() {
-        if (!function_exists('wp_upload_dir')) { return; } $up=wp_upload_dir(); if (!empty($up['error'])) { return; }
+        if (!function_exists('wp_upload_dir') || !function_exists('glob')) { return; }
+        $up=wp_upload_dir(); if (!is_array($up) || !empty($up['error']) || empty($up['basedir'])) { return; }
         $dir=trailingslashit($up['basedir']).'rk-ai-visualizer'; if (!is_dir($dir)) { return; }
-        foreach ((array)glob($dir.'/*.{jpg,png,webp}',GLOB_BRACE) as $file) { if (is_file($file) && time()-(int)filemtime($file)>7*86400) { @unlink($file); } }
+        $files=glob($dir.'/*'); if (!is_array($files)) { return; }
+        foreach ($files as $file) {
+            if (!is_file($file) || !in_array(strtolower(pathinfo($file,PATHINFO_EXTENSION)),array('jpg','png','webp'),true)) { continue; }
+            $modified=@filemtime($file); if (false!==$modified && time()-(int)$modified>7*86400) { @unlink($file); }
+        }
     }
     public static function isHttpsUrl( $url ) {
         if (!is_string($url)||!preg_match('#^https://[^\s]+$#i',$url)) { return false; }

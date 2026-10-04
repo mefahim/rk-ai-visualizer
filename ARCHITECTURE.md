@@ -26,7 +26,7 @@ The renderer and validator iterate fields generically. Registration rejects unsu
 
 ## Storage
 
-Quota and pending jobs use WordPress transients. Visitor state is keyed from a SHA-256 hash of a random HttpOnly cookie ID. IP rate records store hashed IP keys. Leads are deduplicated by normalized email in a capped WordPress option, validated for phone format, and tagged by visualizer/generation; raw IP addresses are not persisted with lead records. Generated image bytes are checked with image parsers and stored under an engine-owned uploads subdirectory.
+Quota and pending jobs use WordPress transients. Visitor state is keyed from a SHA-256 hash of a random HttpOnly cookie ID. IP rate records use an HMAC of the remote IP keyed by the WordPress authentication salt; raw IP addresses are not stored. Leads are deduplicated by normalized email in a capped WordPress option, validated for phone format, and tagged by visualizer/generation. Generated image bytes are checked with image parsers and stored under an engine-owned uploads subdirectory.
 
 ## Deliberate Phase 1 limits
 
