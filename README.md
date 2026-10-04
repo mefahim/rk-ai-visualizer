@@ -1,0 +1,55 @@
+# RK AI Visualizer
+
+A standalone, definition-driven WordPress plugin foundation for AI image visualization. Phase 1 ships a reusable engine plus the Flooring Visualizer definition; visualizer-specific fields and prompt rules are configuration, not branches in the engine or renderer.
+
+## Requirements and installation
+
+- WordPress 6.0+; PHP 7.4+.
+- Copy this directory into `wp-content/plugins/rk-ai-visualizer/` and activate **RK AI Visualizer**.
+- In **Settings → RK AI Visualizer**, enable the plugin and select a provider. For local smoke tests choose **Mock**; it stores and returns the uploaded image without using an AI service.
+- Insert `[rk_ai_visualizer visualizer="flooring"]` into a page. Optional shortcode attributes: `cities="Peoria\nPeoria Heights"`, `submit_label="Create visualization"`, `cta_label="Talk with us"`, and `cta_url="https://example.com/contact"`.
+
+## Providers
+
+- **Mock**: synchronous local image echo, useful for tests and UI verification.
+- **Gemini**: synchronous image edit; key comes from `RK_AIVIZ_GEMINI_KEY`, `GEMINI_API_KEY`, or the protected settings option. The API key is sent only in a request header.
+- **Hugging Face**: queued FLUX Kontext image edit; key comes from `RK_AIVIZ_HF_TOKEN`, `HF_TOKEN`, or settings. Queue URLs are validated and translated only from `fal.run` hosts.
+- **Custom**: JSON backend using an administrator-configured HTTPS endpoint; supports HTTPS image URLs, base64/data-URI images, and asynchronous `statusUrl` responses. Polling is restricted to the configured backend host.
+
+Provider input is normalized to `prompt`, `image_path`, `mime_type`, `metadata`, and validated `options`; provider output is normalized to `completed` + `image_url`, `pending` + `job`, or `WP_Error`.
+
+## REST API
+
+Canonical definition-aware endpoints (the definition slug defaults to `flooring` in the shortcode):
+
+- `GET /wp-json/rk-ai/v1/visualizer/{visualizer}/quota`
+- `POST /wp-json/rk-ai/v1/visualizer/{visualizer}/generate` — multipart `image` and JSON `options`
+- `GET /wp-json/rk-ai/v1/visualizer/{visualizer}/status?job={id}`
+- `POST /wp-json/rk-ai/v1/visualizer/{visualizer}/lead` — JSON `name`, `email`, optional `phone`
+
+The legacy conceptual paths `/wp-json/rk/v1/visualizer/{quota,generate,status,lead}` remain registered and target Flooring. Generation/status/quota responses are marked `Cache-Control: no-store, private`; async jobs are bound to the HttpOnly visitor cookie and refund reserved quota after provider failure/timeout.
+
+## Extension points
+
+Register a `RK\AIVisualizer\Definitions\Definition` with `Registry::instance()->register(...)` during plugin bootstrap. A definition owns slug/name, upload constraints, generic field descriptions/options, prompt maps/rules, CTA/copy, and quota defaults. The same validator, prompt composer, engine, provider interface, REST routes, and renderer are used for every definition. Phase 1 supports text, textarea, number, select, radio/cards/swatches, toggle, and slider fields. The source image is an engine-level upload, not a definition option field; a separate image-valued option field is intentionally deferred. Unsupported field types and malformed definitions fail at registration rather than falling through to generic text rendering.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for boundaries and flow.
+
+## Security and data
+
+- Uploads are verified from file bytes/MIME and dimensions; client-side checks are not trusted.
+- Provider requests use HTTPS plus WordPress safe-URL validation, disable redirects, and cap response bodies at 20 MiB. Custom async status URLs must match the configured HTTPS host and effective port; Hugging Face polling URLs are revalidated against the fixed router host/path.
+- API credentials are never emitted in frontend markup or provider URLs. Prefer constants/environment variables for production secrets.
+- Lead data is stored in the `rk_ai_visualizer_leads` WordPress option with email deduplication and a 500-record cap. Restrict database access and follow your privacy/retention obligations.
+- Generated images are validated before writing to a random filename in `uploads/rk-ai-visualizer/`; files older than seven days are cleaned during generation.
+- REST is public because it serves anonymous visitors; upload checks, visitor quota, per-IP limits, strict input validation, non-cacheable responses, and job ownership constrain use. Site operators should layer their WAF/rate limits as appropriate.
+
+## Tests
+
+The PHPUnit-free test runner uses WordPress fakes and intercepted HTTP responses; it does not call real AI providers:
+
+```sh
+php tests/run.php
+```
+
+A live WordPress install is still required for activation/admin/REST end-to-end verification. The PHP 7.4 compatibility review is static; the code-level suite currently runs under PHP 8.3.
