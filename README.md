@@ -1,13 +1,13 @@
 # RK AI Visualizer
 
-A standalone, definition-driven WordPress plugin foundation for AI image visualization. Phase 1 ships a reusable engine plus the Flooring Visualizer definition; visualizer-specific fields and prompt rules are configuration, not branches in the engine or renderer.
+A standalone, definition-driven WordPress plugin foundation for AI image visualization. Phase 1 shipped the reusable engine and Flooring Visualizer; the Kitchen Visualizer is a second definition used to validate the same architecture. Visualizer-specific fields and prompt rules are definition data, not branches in the engine or renderer.
 
 ## Requirements and installation
 
 - WordPress 6.0+; PHP 7.4+.
 - Copy this directory into `wp-content/plugins/rk-ai-visualizer/` and activate **RK AI Visualizer**.
 - In **Settings → RK AI Visualizer**, enable the plugin and select a provider. For local smoke tests choose **Mock**; it stores and returns the uploaded image without using an AI service.
-- Insert `[rk_ai_visualizer visualizer="flooring"]` into a page. Optional shortcode attributes: `cities="Peoria\nPeoria Heights"`, `submit_label="Create visualization"`, `cta_label="Talk with us"`, and `cta_url="https://example.com/contact"`.
+- Insert `[rk_ai_visualizer visualizer="flooring"]` or `[rk_ai_visualizer visualizer="kitchen"]` into a page. Optional shortcode attributes: `cities="Peoria\nPeoria Heights"`, `submit_label="Create visualization"`, `cta_label="Talk with us"`, and `cta_url="https://example.com/contact"`.
 
 ## Providers
 
@@ -20,7 +20,7 @@ Provider input is normalized to `prompt`, `image_path`, `mime_type`, `metadata`,
 
 ## REST API
 
-Canonical definition-aware endpoints (the definition slug defaults to `flooring` in the shortcode):
+Canonical definition-aware endpoints (the definition slug defaults to `flooring` in the shortcode; `kitchen` uses the same routes):
 
 - `GET /wp-json/rk-ai/v1/visualizer/{visualizer}/quota`
 - `POST /wp-json/rk-ai/v1/visualizer/{visualizer}/generate` — multipart `image` and JSON `options`
@@ -31,7 +31,7 @@ The legacy conceptual paths `/wp-json/rk/v1/visualizer/{quota,generate,status,le
 
 ## Extension points
 
-Register a `RK\AIVisualizer\Definitions\Definition` with `Registry::instance()->register(...)` during plugin bootstrap. A definition owns slug/name, upload constraints, generic field descriptions/options, prompt maps/rules, CTA/copy, and quota defaults. The same validator, prompt composer, engine, provider interface, REST routes, and renderer are used for every definition. Phase 1 supports text, textarea, number, select, radio/cards/swatches, toggle, and slider fields. The source image is an engine-level upload, not a definition option field; a separate image-valued option field is intentionally deferred. Unsupported field types and malformed definitions fail at registration rather than falling through to generic text rendering.
+Register a `RK\AIVisualizer\Definitions\Definition` with `Registry::instance()->register(...)` during plugin bootstrap. A definition owns slug/name, upload constraints, generic field descriptions/options, prompt maps/rules, CTA/copy, and quota defaults. Flooring and Kitchen use the same validator, prompt composer, engine, provider interface, REST routes, and renderer. Supported field types are text, textarea, number, select, radio/cards/swatches, toggle, and slider. The source image is an engine-level upload, not a definition option field; a separate image-valued option field is intentionally deferred. Unsupported field types and malformed definitions fail at registration rather than falling through to generic text rendering.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for boundaries and flow.
 
