@@ -52,4 +52,4 @@ The PHPUnit-free test runner uses WordPress fakes and intercepted HTTP responses
 php tests/run.php
 ```
 
-A live WordPress install is still required for activation/admin/REST end-to-end verification. The PHP 7.4 compatibility review is static; the code-level suite currently runs under PHP 8.3.
+Disposable WordPress activation, shortcode rendering, public REST, upload, quota, lead, Mock generation, and browser checks are recorded in [WORDPRESS_INTEGRATION_VALIDATION_REPORT.md](WORDPRESS_INTEGRATION_VALIDATION_REPORT.md). The integration pass used WordPress 7.1.2 and PHP 8.3.6; it is not production or cross-version certification. Real Gemini/Hugging Face calls remain intentionally deferred. The PHP 7.4 compatibility review is static; the standalone code-level suite runs under PHP 8.3.

@@ -4,6 +4,10 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 use RK\AIVisualizer\Definitions\Registry;
 use RK\AIVisualizer\Definitions\Flooring;
 use RK\AIVisualizer\Definitions\Kitchen;
+use RK\AIVisualizer\Rest\Routes;
+use RK\AIVisualizer\Frontend\Renderer;
+use RK\AIVisualizer\Frontend\Assets;
+use RK\AIVisualizer\Admin\Settings;
 require_once __DIR__ . '/core/errors.php';
 require_once __DIR__ . '/definitions/definition.php';
 require_once __DIR__ . '/definitions/registry.php';
