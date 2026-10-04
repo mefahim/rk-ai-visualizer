@@ -11,6 +11,7 @@ final class Definition {
             throw new \InvalidArgumentException( 'A definition requires a slug, name, and fields.' );
         }
         $data['slug'] = $slug;
+        $data['type'] = isset( $data['type'] ) && in_array( $data['type'], array( 'built-in', 'custom' ), true ) ? $data['type'] : 'custom';
         $upload = isset( $data['upload'] ) && is_array( $data['upload'] ) ? $data['upload'] : array();
         $upload = array_merge( array( 'max_size' => 10485760, 'min_width' => 1, 'min_height' => 1, 'allowed_types' => self::IMAGE_TYPES ), $upload );
         if ( ! is_numeric( $upload['max_size'] ) || (float) $upload['max_size'] !== (float) (int) $upload['max_size'] || (int) $upload['max_size'] < 1 || (int) $upload['max_size'] > 52428800 || ! is_numeric( $upload['min_width'] ) || (float) $upload['min_width'] !== (float) (int) $upload['min_width'] || (int) $upload['min_width'] < 1 || ! is_numeric( $upload['min_height'] ) || (float) $upload['min_height'] !== (float) (int) $upload['min_height'] || (int) $upload['min_height'] < 1 || ! is_array( $upload['allowed_types'] ) || ! $upload['allowed_types'] ) {
