@@ -32,6 +32,8 @@ jobs:
         run: php -d error_reporting=E_ALL tests/frontend-renderer.test.php
       - name: Run admin dashboard regression suite
         run: php -d error_reporting=E_ALL tests/admin-dashboard.test.php
+      - name: Run Gemini provider regression suite
+        run: php -d error_reporting=E_ALL tests/gemini.test.php
       - uses: actions/setup-node@v4
         with:
           node-version: 22
