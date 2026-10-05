@@ -30,6 +30,7 @@ require_once __DIR__ . '/rest/routes.php';
 require_once __DIR__ . '/frontend/renderer.php';
 require_once __DIR__ . '/frontend/assets.php';
 require_once __DIR__ . '/admin/settings.php';
+require_once __DIR__ . '/admin/dashboard.php';
 final class Bootstrap {
     public static function init() {
         $registry = Registry::instance();

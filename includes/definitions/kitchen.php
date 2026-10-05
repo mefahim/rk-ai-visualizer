@@ -7,6 +7,7 @@ final class Kitchen {
         return new Definition( array(
             'slug' => 'kitchen',
             'name' => 'Kitchen Visualizer',
+            'type' => 'built-in',
             'description' => 'Explore coordinated kitchen finishes while keeping the existing room structure and camera view.',
             'upload' => array( 'allowed_types' => array( 'image/jpeg', 'image/png', 'image/webp' ), 'max_size' => 10485760, 'min_width' => 640, 'min_height' => 480 ),
             'fields' => array(

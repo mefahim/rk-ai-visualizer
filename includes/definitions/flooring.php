@@ -5,7 +5,7 @@ final class Flooring {
     public static function definition() {
         $select = function ( $id, $label, array $options, $required = true ) { return array( 'id' => $id, 'label' => $label, 'type' => 'radio', 'required' => $required, 'options' => $options ); };
         return new Definition( array(
-            'slug' => 'flooring', 'name' => 'Flooring Visualizer',
+            'slug' => 'flooring', 'name' => 'Flooring Visualizer', 'type' => 'built-in',
             'description' => 'Explore a photorealistic hardwood flooring concept in your room.',
             'upload' => array( 'allowed_types' => array( 'image/jpeg', 'image/png', 'image/webp' ), 'max_size' => 10485760, 'min_width' => 640, 'min_height' => 480 ),
             'fields' => array(

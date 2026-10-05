@@ -1,17 +1,22 @@
 <?php
 namespace RK\AIVisualizer\Admin;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
+
 final class Settings {
     public static function init() {
         add_action( 'admin_menu', array( __CLASS__, 'menu' ) );
         add_action( 'admin_init', array( __CLASS__, 'register' ) );
+        add_action( 'admin_enqueue_scripts', array( Dashboard::class, 'assets' ) );
+        add_action( 'admin_post_' . Dashboard::DELETE_ACTION, array( Dashboard::class, 'delete_lead' ) );
     }
-    public static function menu() {
-        add_options_page( 'RK AI Visualizer', 'RK AI Visualizer', 'manage_options', 'rk-ai-visualizer', array( __CLASS__, 'render' ) );
-    }
+
+    public static function menu() { Dashboard::menu(); }
+
     public static function register() {
         register_setting( 'rk_ai_visualizer', 'rk_ai_visualizer_settings', array( 'sanitize_callback' => array( __CLASS__, 'sanitize' ) ) );
     }
+
     public static function sanitize( $input ) {
         $defaults = array(
             'enabled' => false,
@@ -60,42 +65,58 @@ final class Settings {
         }
         return $out;
     }
+
     public static function render() {
         if ( ! current_user_can( 'manage_options' ) ) { return; }
+        Dashboard::render_settings_page();
+    }
+
+    /** Render the existing single global option form; no duplicate settings store is introduced. */
+    public static function form() {
         $saved = get_option( 'rk_ai_visualizer_settings', array() );
-        $s = self::sanitize( $saved );
+        $settings = self::sanitize( is_array( $saved ) ? $saved : array() );
         $name = 'rk_ai_visualizer_settings';
-        echo '<div class="wrap"><h1>RK AI Visualizer</h1><form method="post" action="options.php">';
+        echo '<form class="rkaiviz-settings-form" method="post" action="options.php">';
         settings_fields( 'rk_ai_visualizer' );
-        self::checkbox( $name, 'enabled', 'Enable visualizer', $s );
-        self::select( $name, 'provider', 'Provider', $s, array( 'mock' => 'Mock (no API cost)', 'gemini' => 'Google Gemini', 'huggingface' => 'Hugging Face', 'custom' => 'Custom backend' ) );
+        echo '<section class="rkaiviz-panel rkaiviz-settings-section"><p class="rkaiviz-eyebrow">GLOBAL SETTINGS</p><h2>Availability and provider</h2><p class="rkaiviz-muted">These options are shared by every registered visualizer.</p>';
+        self::checkbox( $name, 'enabled', 'Enable all visualizers', $settings );
+        self::select( $name, 'provider', 'Current provider', $settings, array( 'mock' => 'Mock (no API cost)', 'gemini' => 'Google Gemini', 'huggingface' => 'Hugging Face', 'custom' => 'Custom backend' ) );
+        echo '</section><section class="rkaiviz-panel rkaiviz-settings-section"><p class="rkaiviz-eyebrow">PROVIDER CREDENTIALS</p><h2>Connection details</h2><p class="rkaiviz-muted">Saved secrets are never displayed. Environment variables or constants can still be used by the existing provider layer.</p>';
         self::secret( $name, 'gemini_key', 'Gemini API key' );
-        self::text( $name, 'gemini_model', 'Gemini model', $s );
+        self::text( $name, 'gemini_model', 'Gemini model', $settings );
         self::secret( $name, 'hf_token', 'Hugging Face token' );
-        self::text( $name, 'custom_url', 'Custom HTTPS backend URL', $s );
+        self::text( $name, 'custom_url', 'Custom HTTPS backend URL', $settings );
         self::secret( $name, 'custom_key', 'Custom backend key' );
-        self::text( $name, 'custom_header', 'Custom key header', $s );
+        self::text( $name, 'custom_header', 'Custom key header', $settings );
+        echo '</section><section class="rkaiviz-panel rkaiviz-settings-section"><p class="rkaiviz-eyebrow">GLOBAL QUOTAS</p><h2>Visitor limits</h2><p class="rkaiviz-muted">Defaults apply globally unless a registered visualizer defines its own quota defaults.</p>';
         foreach ( array( 'free_count' => 'Free generations', 'bonus_count' => 'Lead bonus generations', 'cooldown_hours' => 'Cooldown (hours)', 'ip_per_hour' => 'Requests per IP per hour', 'timeout' => 'Async timeout (seconds)' ) as $key => $label ) {
-            self::number( $name, $key, $label, $s );
+            self::number( $name, $key, $label, $settings );
         }
-        submit_button();
-        echo '</form><hr><p>Shortcode: <code>[rk_ai_visualizer visualizer="flooring"]</code>. Leads are stored in the WordPress options table. Keep backups and restrict database access.</p></div>';
+        echo '</section>';
+        submit_button( 'Save global settings' );
+        echo '<p class="description">Shortcode example: <code>[rk_ai_visualizer visualizer="flooring"]</code>. Leads remain in the existing WordPress options storage.</p></form>';
     }
+
     private static function name( $option, $key ) { return $option . '[' . $key . ']'; }
+
     private static function text( $option, $key, $label, $settings ) {
-        echo '<p><label>' . esc_html( $label ) . '<br><input class="regular-text" type="text" name="' . esc_attr( self::name( $option, $key ) ) . '" value="' . esc_attr( $settings[ $key ] ) . '"></label></p>';
+        echo '<p class="rkaiviz-setting-row"><label>' . esc_html( $label ) . '<input class="regular-text" type="text" name="' . esc_attr( self::name( $option, $key ) ) . '" value="' . esc_attr( $settings[ $key ] ) . '"></label></p>';
     }
+
     private static function secret( $option, $key, $label ) {
-        echo '<p><label>' . esc_html( $label ) . ' (saved value is not displayed)<br><input class="regular-text" type="password" autocomplete="new-password" name="' . esc_attr( self::name( $option, $key ) ) . '" value=""></label> <label><input type="checkbox" name="' . esc_attr( self::name( $option, 'clear_' . $key ) ) . '" value="1"> Clear</label></p>';
+        echo '<p class="rkaiviz-setting-row"><label>' . esc_html( $label ) . ' <span class="rkaiviz-muted">(saved value is not displayed)</span><input class="regular-text" type="password" autocomplete="new-password" name="' . esc_attr( self::name( $option, $key ) ) . '" value=""></label> <label class="rkaiviz-clear-secret"><input type="checkbox" name="' . esc_attr( self::name( $option, 'clear_' . $key ) ) . '" value="1"> Clear saved value</label></p>';
     }
+
     private static function number( $option, $key, $label, $settings ) {
-        echo '<p><label>' . esc_html( $label ) . '<br><input type="number" name="' . esc_attr( self::name( $option, $key ) ) . '" value="' . esc_attr( (int) $settings[ $key ] ) . '"></label></p>';
+        echo '<p class="rkaiviz-setting-row"><label>' . esc_html( $label ) . '<input type="number" name="' . esc_attr( self::name( $option, $key ) ) . '" value="' . esc_attr( (int) $settings[ $key ] ) . '"></label></p>';
     }
+
     private static function checkbox( $option, $key, $label, $settings ) {
-        echo '<p><label><input type="checkbox" name="' . esc_attr( self::name( $option, $key ) ) . '" value="1" ' . checked( ! empty( $settings[ $key ] ), true, false ) . '> ' . esc_html( $label ) . '</label></p>';
+        echo '<p class="rkaiviz-setting-row rkaiviz-setting-toggle"><label><input type="checkbox" name="' . esc_attr( self::name( $option, $key ) ) . '" value="1" ' . checked( ! empty( $settings[ $key ] ), true, false ) . '> <span><strong>' . esc_html( $label ) . '</strong><small>Controls plugin-wide availability, not individual definitions.</small></span></label></p>';
     }
+
     private static function select( $option, $key, $label, $settings, $options ) {
-        echo '<p><label>' . esc_html( $label ) . '<br><select name="' . esc_attr( self::name( $option, $key ) ) . '">';
+        echo '<p class="rkaiviz-setting-row"><label>' . esc_html( $label ) . '<select name="' . esc_attr( self::name( $option, $key ) ) . '">';
         foreach ( $options as $value => $text ) {
             echo '<option value="' . esc_attr( $value ) . '" ' . selected( $settings[ $key ], $value, false ) . '>' . esc_html( $text ) . '</option>';
         }
