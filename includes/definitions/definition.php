@@ -3,7 +3,7 @@ namespace RK\AIVisualizer\Definitions;
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 final class Definition {
     private $data;
-    private const FIELD_TYPES = array( 'text', 'textarea', 'number', 'select', 'radio', 'cards', 'swatches', 'toggle', 'slider' );
+    private const FIELD_TYPES = array( 'text', 'textarea', 'number', 'select', 'radio', 'cards', 'swatches', 'image', 'toggle', 'slider' );
     private const IMAGE_TYPES = array( 'image/jpeg', 'image/png', 'image/webp' );
     public function __construct( array $data ) {
         $slug = isset( $data['slug'] ) && is_string( $data['slug'] ) ? sanitize_key( $data['slug'] ) : '';
@@ -32,12 +32,24 @@ final class Definition {
             $id_key = strtolower( $field['id'] );
             if ( isset( $ids[$id_key] ) ) { throw new \InvalidArgumentException( 'Field identifiers must be unique, ignoring case.' ); }
             $ids[$id_key] = $field['id']; $positions[$field['id']] = (int) $index;
-            if ( in_array( $field['type'], array( 'select', 'radio', 'cards', 'swatches' ), true ) ) {
+            if ( in_array( $field['type'], array( 'select', 'radio', 'cards', 'swatches', 'image' ), true ) ) {
                 $options = isset( $field['options'] ) && is_array( $field['options'] ) ? $field['options'] : array();
                 $source = isset( $field['options_source'] ) ? $field['options_source'] : '';
                 if ( ! $options && 'cities' !== $source ) { throw new \InvalidArgumentException( 'Choice fields require options or a supported options source.' ); }
                 if ( '' !== $source && 'cities' !== $source ) { throw new \InvalidArgumentException( 'Unsupported choice options source.' ); }
                 foreach ( $options as $value => $label ) { if ( ( ! is_string( $value ) && ! is_int( $value ) ) || ! is_string( $label ) || '' === (string) $value || '' === trim( $label ) ) { throw new \InvalidArgumentException( 'Choice option values must be scalar keys and labels must be non-empty strings.' ); } }
+                if ( 'image' === $field['type'] ) {
+                    $images = isset( $field['images'] ) && is_array( $field['images'] ) ? $field['images'] : array();
+                    if ( 'cities' === $source || count( $images ) !== count( $options ) ) { throw new \InvalidArgumentException( 'Image choice fields require one image URL for every static option.' ); }
+                    foreach ( $options as $value => $label ) {
+                        if ( ! array_key_exists( $value, $images ) || ! is_string( $images[$value] ) || '' === trim( $images[$value] ) ) { throw new \InvalidArgumentException( 'Image choice fields require one image URL for every static option.' ); }
+                        $image_url = trim( $images[$value] );
+                        $parts = parse_url( $image_url );
+                        $absolute = (bool) preg_match( '#^https?://#i', $image_url );
+                        $root_relative = 0 === strpos( $image_url, '/' ) && 0 !== strpos( $image_url, '//' );
+                        if ( ( ! $absolute && ! $root_relative ) || ( $absolute && ( false === filter_var( $image_url, FILTER_VALIDATE_URL ) || ! is_array( $parts ) || empty( $parts['host'] ) || isset( $parts['user'] ) || isset( $parts['pass'] ) ) ) ) { throw new \InvalidArgumentException( 'Image choice URLs must be HTTPS/HTTP URLs or root-relative paths without credentials.' ); }
+                    }
+                }
             }
             if ( in_array( $field['type'], array( 'number', 'slider' ), true ) ) {
                 foreach ( array( 'min', 'max', 'default', 'step' ) as $numeric_key ) { if ( isset( $field[$numeric_key] ) && ! is_numeric( $field[$numeric_key] ) ) { throw new \InvalidArgumentException( 'Numeric field constraints must be numeric.' ); } }
