@@ -28,6 +28,8 @@ jobs:
         run: find . -name '*.php' -print0 | xargs -0 -n1 php -l
       - name: Run PHP regression suite
         run: php -d error_reporting=E_ALL tests/run.php
+      - name: Run public renderer regression suite
+        run: php -d error_reporting=E_ALL tests/frontend-renderer.test.php
       - uses: actions/setup-node@v4
         with:
           node-version: 22
