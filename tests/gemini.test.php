@@ -1,5 +1,6 @@
 <?php
 error_reporting( E_ALL );
+define( 'WP_DEBUG', true );
 require __DIR__ . '/bootstrap.php';
 
 $tests = 0;
@@ -48,7 +49,7 @@ gemini_configure();
     gemini_assert( 0 === strpos( $result['image_url'], 'https://cms.example.test/wp-content/uploads/rk-ai-visualizer/' ), 'stored Gemini result did not return an HTTPS image URL' );
     $request = $GLOBALS['gemini_request'];
     gemini_assert( 'POST' === $request['method'], 'Gemini request method changed' );
-    gemini_assert( 'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-image:generateContent' === $request['url'], 'Gemini request must use the current v1 generateContent endpoint' );
+    gemini_assert( 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent' === $request['url'], 'Gemini 2.5 request must use the documented v1beta generateContent endpoint' );
     gemini_assert( 'fake-gemini-test-key' === $request['args']['headers']['x-goog-api-key'], 'Gemini API key header is missing or incorrect' );
     $body = json_decode( $request['args']['body'], true );
     gemini_assert( is_array( $body ) && isset( $body['contents'][0]['parts'][1]['inline_data'] ), 'Gemini image part is missing' );
@@ -66,6 +67,31 @@ gemini_test( 'Gemini HTTP 400, 401, and 403 responses become provider errors', f
         gemini_assert( 'rk_viz_provider' === $result->get_error_code(), 'Gemini HTTP ' . $status . ' error code changed' );
     }
     gemini_reset_filter();
+} );
+
+gemini_test( 'WP_DEBUG logs safe Google error diagnostics without secrets or prompt data', function () use ( $image ) {
+    $log = tempnam( sys_get_temp_dir(), 'rk-gemini-log-' );
+    $previous_log = ini_get( 'error_log' );
+    ini_set( 'error_log', $log );
+    $secret = 'fake-gemini-test-key';
+    $prompt = 'private room prompt that must not be logged';
+    $GLOBALS['wp_filters']['rk_ai_visualizer_http'] = function () {
+        return array( 'code' => 403, 'body' => json_encode( array( 'error' => array( 'code' => 403, 'status' => 'PERMISSION_DENIED', 'message' => 'The Gemini API key is not authorized.' ) ) ) );
+    };
+    try {
+        $result = \RK\AIVisualizer\Providers\Factory::create( 'gemini' )->generate( array( 'prompt' => $prompt, 'image_path' => $image, 'mime_type' => 'image/png', 'options' => array() ) );
+    } finally {
+        gemini_reset_filter();
+        ini_set( 'error_log', $previous_log );
+    }
+    gemini_error( $result, 'Gemini diagnostic response' );
+    $logged = file_get_contents( $log );
+    @unlink( $log );
+    foreach ( array( 'http_status=403', 'google_status=PERMISSION_DENIED', 'google_code=403', 'google_message=The Gemini API key is not authorized.', 'model=gemini-2.5-flash-image', 'endpoint=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent' ) as $expected ) {
+        gemini_assert( false !== strpos( $logged, $expected ), 'WP_DEBUG log omitted ' . $expected );
+    }
+    gemini_assert( false === strpos( $logged, $secret ), 'WP_DEBUG log exposed the Gemini API key' );
+    gemini_assert( false === strpos( $logged, $prompt ), 'WP_DEBUG log exposed the prompt' );
 } );
 
 gemini_test( 'malformed and image-less Gemini responses fail safely', function () use ( $image ) {
