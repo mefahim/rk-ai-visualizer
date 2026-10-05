@@ -1,10 +1,13 @@
 # Phase 6 — Public Visualizer UI/UX Implementation Report
 
-**Date:** 2026-10-05  
-**Repository:** [`mefahim/rk-ai-visualizer`](https://github.com/mefahim/rk-ai-visualizer)  
-**Branch:** `feat/public-visualizer-ui` (created from `origin/main`)  
-**Implementation commit:** `f8e468257efe4b1023eb1b7a442649057a907e6f`  
-**Pull request:** [#6 — Phase 6 — Public Visualizer UI/UX](https://github.com/mefahim/rk-ai-visualizer/pull/6) — open, unmerged, targets `main`.
+- **Date:** 2026-10-05
+- **Repository:** [`mefahim/rk-ai-visualizer`](https://github.com/mefahim/rk-ai-visualizer)
+- **Branch:** `feat/public-visualizer-ui` (created from `origin/main`, merged into `main`)
+- **Implementation commit:** `f8e468257efe4b1023eb1b7a442649057a907e6f`
+- **Main merge commit:** `1115966c1e8adb1413ef773658fdf7791274bc4a`
+- **Plugin version:** `0.2.0`
+- **Pull request:** [#6 — Phase 6 — Public Visualizer UI/UX](https://github.com/mefahim/rk-ai-visualizer/pull/6) — merged.
+- **GitHub Release:** [`v0.2.0`](https://github.com/mefahim/rk-ai-visualizer/releases/tag/v0.2.0) with [installable plugin ZIP](https://github.com/mefahim/rk-ai-visualizer/releases/download/v0.2.0/rk-ai-visualizer-0.2.0.zip).
 
 ## Summary
 
@@ -39,6 +42,7 @@ The pre-change audit found that the existing `Definition` schema did **not** sup
 | PHP lint | **Passed** for all project PHP files |
 | `git diff --check` | **Passed** |
 | CSS scope/responsive audit | **Passed**; all selectors remain under the component root; 900px and 560px breakpoints present |
+| GitHub Actions on PR #6 | **Passed** on PHP 7.4 and PHP 8.3 |
 | Separate Phase 5 admin test suite | **7 tests, 0 failures**, run in a detached temporary worktree from open PR #5 without adding its files to this branch |
 | Chromium responsive QA | Captured at **1440×1100** and **390×844**; inspected both renders and verified exact 1440px/390px CSS viewports have no horizontal overflow |
 
@@ -53,6 +57,8 @@ The screenshots show the actual Kitchen shortcode rendered using the repository 
 
 No admin-specific test file exists in `origin/main`. The relevant admin regression suite is part of the separate open PR [`#5 — Phase 5 Admin Dashboard UI`](https://github.com/mefahim/rk-ai-visualizer/pull/5); it was run independently in a detached temporary worktree and passed all 7 tests. The Phase 6 branch neither merges that work nor changes admin screens.
 
-## Pull request status
+## Merge and release
 
-[PR #6](https://github.com/mefahim/rk-ai-visualizer/pull/6) is open against `main` and remains unmerged for review.
+[PR #6](https://github.com/mefahim/rk-ai-visualizer/pull/6) was merged into `main` at `1115966c1e8adb1413ef773658fdf7791274bc4a`.
+
+The public [GitHub Release `v0.2.0`](https://github.com/mefahim/rk-ai-visualizer/releases/tag/v0.2.0) attaches `rk-ai-visualizer-0.2.0.zip`, a 40-entry ZIP with a single `rk-ai-visualizer/` plugin root. It includes the plugin entrypoint, runtime `includes/`, frontend/admin assets, README, architecture notes, and GPL license; tests, CI, screenshots, reports, and Git metadata are excluded. SHA-256: `9502bdc0316e41df3b64d5715cc24984b48ddbad1f95b5f6a6f0766e18d4547b`.
