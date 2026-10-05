@@ -3,7 +3,8 @@
 **Date:** 2026-10-05  
 **Repository:** [`mefahim/rk-ai-visualizer`](https://github.com/mefahim/rk-ai-visualizer)  
 **Branch:** `feat/public-visualizer-ui` (created from `origin/main`)  
-**Pull request:** To be recorded after creation; will remain open and unmerged.
+**Implementation commit:** `f8e468257efe4b1023eb1b7a442649057a907e6f`  
+**Pull request:** [#6 — Phase 6 — Public Visualizer UI/UX](https://github.com/mefahim/rk-ai-visualizer/pull/6) — open, unmerged, targets `main`.
 
 ## Summary
 
@@ -54,4 +55,4 @@ No admin-specific test file exists in `origin/main`. The relevant admin regressi
 
 ## Pull request status
 
-The requested Phase 6 pull request will target `main`, will be left open and unmerged, and its URL will be added here after creation.
+[PR #6](https://github.com/mefahim/rk-ai-visualizer/pull/6) is open against `main` and remains unmerged for review.
