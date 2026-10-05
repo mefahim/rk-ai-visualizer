@@ -33,6 +33,7 @@ $GLOBALS['test_posts'] = array( (object) array( 'post_content' => '[rk_ai_visual
 
 admin_test( 'plugin menu exposes Dashboard, Visualizers, Leads and Settings', function () {
     \RK\AIVisualizer\Admin\Settings::menu();
+    admin_assert( false === strpos( file_get_contents( dirname( __DIR__ ) . '/includes/admin/settings.php' ), 'add_options_page' ), 'legacy Settings menu registration must be absent' );
     admin_assert( in_array( 'rk-ai-visualizer', $GLOBALS['test_admin_menus'], true ), 'missing top-level dashboard menu' );
     foreach ( array( 'rk-ai-visualizer', 'rk-ai-visualizers', 'rk-ai-visualizer-leads', 'rk-ai-visualizer-settings' ) as $page ) {
         admin_assert( in_array( $page, $GLOBALS['test_admin_submenus'], true ), 'missing submenu ' . $page );
